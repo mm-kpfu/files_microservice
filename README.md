@@ -2,5 +2,5 @@
 
 ### Modules
 - storages - LocalStorage, CloudStorage (s3)
-- commands - command for clear old files
+- storages.commands.ClearOldFiles - command for clear old files
 - apps - api for upload and get files
