@@ -39,7 +39,7 @@ class ClearOldFiles:
         await self.delete_files(files_for_delete, storage)
 
     @classmethod
-    async def is_file_for_delete(cls, file_info: StatFileInfo):
+    def is_file_for_delete(cls, file_info: StatFileInfo):
         now = datetime.now()
         remove = False
         if file_info.accessed_time is not None:
@@ -81,7 +81,7 @@ def main():
     command = ClearOldFiles(STORAGES_FOR_CLEAR)
 
     if cmd_args.run_once:
-        command.clear_storages()
+        asyncio.run(command.clear_storages())
     else:
         trigger = CronTrigger.from_crontab(cmd_args.schedule)
         scheduler = AsyncIOScheduler()
