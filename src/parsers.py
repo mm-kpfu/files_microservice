@@ -1,11 +1,6 @@
-from typing import BinaryIO, Callable
-
-from fastapi import Request, HTTPException
-from fastapi.openapi.models import Response
-from fastapi.routing import APIRoute
-
-from starlette.datastructures import FormData, UploadFile, Headers
-from starlette.formparsers import MultiPartParser, MultiPartException, FormParser, _user_safe_decode
+from typing import BinaryIO
+from starlette.datastructures import UploadFile, Headers
+from starlette.formparsers import MultiPartParser, MultiPartException, _user_safe_decode
 from starlette.requests import parse_options_header
 
 from src.storages.base import BaseStorage
@@ -68,46 +63,3 @@ class TargetFileMultipartParser(MultiPartParser):
                     f"Too many fields. Maximum number of fields is {self.max_fields}."
                 )
             self._current_part.file = None
-
-
-class TargetFileUploadRequest(Request):
-    async def _get_form(
-        self, *, max_files: int | float = 1000, max_fields: int | float = 1000
-    ) -> FormData:
-        if self._form is None:
-            assert (
-                parse_options_header is not None
-            ), "The `python-multipart` library must be installed to use form parsing."
-            content_type_header = self.headers.get("Content-Type")
-            content_type: bytes
-            content_type, _ = parse_options_header(content_type_header)
-            if content_type == b"multipart/form-data":
-                try:
-                    multipart_parser = TargetFileMultipartParser(
-                        self.headers,
-                        self.stream(),
-                        max_files=max_files,
-                        max_fields=max_fields,
-                    )
-                    self._form = await multipart_parser.parse()
-                except MultiPartException as exc:
-                    if "app" in self.scope:
-                        raise HTTPException(status_code=400, detail=exc.message)
-                    raise exc
-            elif content_type == b"application/x-www-form-urlencoded":
-                form_parser = FormParser(self.headers, self.stream())
-                self._form = await form_parser.parse()
-            else:
-                self._form = FormData()
-        return self._form
-
-
-class TargetFileRoute(APIRoute):
-    def get_route_handler(self) -> Callable:
-        original_route_handler = super().get_route_handler()
-
-        async def target_file_request_route_handler(request: Request) -> Response:
-            request = TargetFileUploadRequest(request.scope, request.receive)
-            return await original_route_handler(request)
-
-        return target_file_request_route_handler

@@ -1,5 +1,4 @@
 import os
-from aiofiles import os
 from typing import Optional, List
 from urllib import parse
 import aioboto3
@@ -33,12 +32,15 @@ class CloudStorage(BaseStorage):
     async def upload_file(self, file: str | UploadFile, **kwargs) -> Optional[FileInfo]:
         try:
             if isinstance(file, str):
+                filename = os.path.basename(file)
+                filepath = os.path.join(self.path, filename)
                 async with self.s3 as s3:
-                    s3.upload_file(file, **kwargs)
+                    await s3.upload_file(file, Bucket=self.bucket_name, Key=filepath, **kwargs)
             else:
                 metadata = self.get_metadata(file)
+                filepath = os.path.join(self.path, metadata.storage_filename)
                 async with self.s3 as s3:
-                    s3.upload_fileobj(file.file, **kwargs)
+                    await s3.upload_fileobj(file.file, Bucket=self.bucket_name, Key=filepath, **kwargs)
 
                 return metadata
         except Exception as e:

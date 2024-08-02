@@ -1,6 +1,7 @@
+from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, BackgroundTasks, status, Request
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, status, Request, UploadFile
 from fastapi.responses import FileResponse
 
 from src.storages.base import BaseStorage
@@ -9,15 +10,10 @@ from src.settings import settings
 from .services import FilesMetaRepository
 from .schemas import UploadFileResponseSchema
 from src.exceptions import RecordNotFound
-from src.request import TargetFileRoute
 from src.logging import logger
-
+from src.utils import parse_files_from_request
 
 router = APIRouter(prefix='/files')
-
-# recording directly to the desired file without temporary
-# check src.request.TargetFileRoute
-router.route_class = TargetFileRoute
 
 
 @router.post(
@@ -25,16 +21,42 @@ router.route_class = TargetFileRoute
     responses={
         201: {'model': UploadFileResponseSchema},
     },
-    response_model=UploadFileResponseSchema
+    response_model=UploadFileResponseSchema,
+    openapi_extra={
+        "requestBody": {
+            "content": {
+                "multipart/form-data": {
+                    "schema": {
+                        "properties": {
+                          "file": {
+                            "type": "string",
+                            "format": "binary",
+                            "title": "File"
+                          },
+                        },
+                        "type": "object",
+                        "required": [
+                          "file"
+                        ],
+                        "title": "Body_upload_file_files_upload_post"
+                      }
+                }
+            },
+            "required": True
+        }}
 )
 async def upload_file(
     request: Request,
     background_tasks: BackgroundTasks,
     storage: BaseStorage = Depends(get_storage()),
     copy_storage: BaseStorage = Depends(get_storage(CLOUD_STORAGE)),
-    file: UploadFile = File(...),
-    file_meta_repo: FilesMetaRepository = Depends()
+    file_meta_repo: FilesMetaRepository = Depends(),
+    files: List[UploadFile] = Depends(parse_files_from_request)
 ):
+    """
+    Write directly to file, instead of using tempfiles for optimization
+    """
+    file = files[0]
     metadata = storage.get_metadata(file)
     background_tasks.add_task(copy_storage.upload_file, file=file.file.name)
     await file_meta_repo.save_file_metadata(metadata)
