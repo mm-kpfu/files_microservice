@@ -11,7 +11,7 @@ class Settings(BaseSettings):
         "media"
     )
     MEDIA_ROOT: str = 'media'
-    LOG_DIR: DirectoryPath = os.path.join(
+    LOG_DIR: str = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         "logs"
     )
