@@ -55,7 +55,7 @@ def session():
 def storage():
     storage = MagicMock()
     uid = uuid.uuid4()
-    storage.upload_file = AsyncMock(return_value=FileInfo(1, 'pdf', 'origin', 'pdf', name=uid))
+    storage.upload_file = AsyncMock(return_value=FileInfo(size=1, extension='pdf', original_filename='origin', file_format='pdf', name=uid))
     storage.get_upload_path = MagicMock()
     return storage, uid
 
