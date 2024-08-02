@@ -10,6 +10,7 @@ from aiofiles.base import AsyncBase
 from fastapi import UploadFile, Request
 
 from src.settings import settings
+from src.storages.constants import MIME_FORMAT
 
 
 @dataclass
@@ -37,7 +38,8 @@ class BaseStorage(ABC):
         self.path = path
 
     def get_file_format(self, file: BinaryIO) -> Optional[str]:
-        return magic.from_buffer(file.read(4048), mime=True)
+        mime = magic.from_buffer(file.read(4048), mime=True)
+        return MIME_FORMAT.get(mime)
 
     @abstractmethod
     async def list_files(self) -> List[StatFileInfo]:
