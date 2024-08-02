@@ -15,10 +15,10 @@ from src.settings import settings
 @dataclass
 class FileInfo:
     size: int
-    file_format: Optional[str]
-    original_filename: Optional[str]
-    extension: Optional[str]
     name: UUID
+    file_format: Optional[str] = None
+    original_filename: Optional[str] = None
+    extension: Optional[str] = None
 
     @property
     def storage_filename(self):

@@ -36,7 +36,7 @@ async def upload_file(
     file_meta_repo: FilesMetaRepository = Depends()
 ):
     metadata = storage.get_metadata(file)
-    background_tasks.add_task(copy_storage.upload_file, file=metadata.storage_filename)
+    background_tasks.add_task(copy_storage.upload_file, file=file.file.name)
     await file_meta_repo.save_file_metadata(metadata)
     return {'uri': storage.get_file_url(request, str(metadata.name))}
 
