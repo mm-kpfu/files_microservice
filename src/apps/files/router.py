@@ -1,4 +1,4 @@
-from typing import List
+from typing import Tuple
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, status, Request, UploadFile
@@ -51,7 +51,7 @@ async def upload_file(
     storage: BaseStorage = Depends(get_storage()),
     copy_storage: BaseStorage = Depends(get_storage(CLOUD_STORAGE)),
     file_meta_repo: FilesMetaRepository = Depends(),
-    files: List[UploadFile] = Depends(parse_files_from_request)
+    files: Tuple[UploadFile] = Depends(parse_files_from_request)
 ):
     """
     Write directly to file, instead of using tempfiles for optimization
