@@ -19,8 +19,8 @@ STORAGES_FOR_CLEAR = (
 
 
 class ClearOldFiles:
-    DELETE_IF_NOT_ACCESSED_IN_LAST = timedelta(seconds=1)
-    DELETE_IF_NOT_MODIFIED_IN_LAST = timedelta(seconds=1)
+    DELETE_IF_NOT_ACCESSED_IN_LAST = timedelta(days=30)
+    DELETE_IF_NOT_MODIFIED_IN_LAST = timedelta(days=30)
 
     def __init__(self, storages: Iterable[BaseStorage]):
         self.storages = storages
@@ -71,7 +71,7 @@ class ClearOldFiles:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--schedule', default='* * * * *')
+    parser.add_argument('--schedule', default='0 0 * * *')
     parser.add_argument(
         '--run-once',
         action='store_true',
