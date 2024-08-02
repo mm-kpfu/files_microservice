@@ -10,26 +10,24 @@ from src.exceptions import RecordNotFound
 
 
 @pytest.mark.asyncio
-async def test_upload_file(post_request, background_tasks, session, storage, file, mocker):
-    mocker.patch('src.apps.files.router.save_file_metadata', side_effect=AsyncMock())
+async def test_upload_file(post_request, background_tasks, storage, file, file_repo, mocker):
     storage, uid = storage
-    res = await upload_file(post_request, background_tasks, session, storage, storage)
+    res = await upload_file(post_request, background_tasks, storage, storage, file, file_repo)
 
     assert isinstance(res, dict)
     assert res.get('uri', False)
 
 
 @pytest.mark.asyncio
-async def test_get_file(session, storage, file, mocker):
-    mocker.patch('src.apps.files.router.get_file_metadata', side_effect=AsyncMock())
+async def test_get_file(storage, file, file_repo, mocker):
     storage, uid = storage
-    res = await get_file(uid, session, storage)
+    res = await get_file(uid, storage, file_repo)
     assert isinstance(res, FileResponse)
 
 
 @pytest.mark.asyncio
-async def test_get_file_no_metadata(session, storage, file, mocker):
+async def test_get_file_no_metadata(session, storage, file_repo, mocker):
     storage, uid = storage
-    mocker.patch('src.apps.files.router.get_file_metadata', side_effect=RecordNotFound(uid, 'file'))
+    file_repo.get_file_metadata = AsyncMock(side_effect=RecordNotFound(uid, 'file'))
     with pytest.raises(HTTPException):
-        await get_file(uid, session, storage)
+        await get_file(uid, storage, file_repo)

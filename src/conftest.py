@@ -55,7 +55,7 @@ def session():
 def storage():
     storage = MagicMock()
     uid = uuid.uuid4()
-    storage.upload_file = AsyncMock(return_value=FileInfo(1, 'pdf', 'origin', 'pdf', id=uid))
+    storage.upload_file = AsyncMock(return_value=FileInfo(1, 'pdf', 'origin', 'pdf', name=uid))
     storage.get_upload_path = MagicMock()
     return storage, uid
 
@@ -63,3 +63,11 @@ def storage():
 @pytest.fixture
 def file():
     return MagicMock()
+
+
+@pytest.fixture
+def file_repo():
+    repo = MagicMock()
+    repo.save_file_metadata = AsyncMock()
+    repo.get_file_metadata = AsyncMock()
+    return repo
